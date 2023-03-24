@@ -1,0 +1,110 @@
+version: '3'
+
+services:
+    master:
+        build: ./master
+        volumes:
+            - ./opt/data/master:/data:delegated
+        env_file: .env
+        environment:
+            MASTER_PORT: 6379
+        expose:
+            - "6379"
+        ports:
+            - "6379:6379"
+        networks:
+            default:
+                aliases:
+                    - redis-master
+        restart: always
+
+    slave:
+        build: ./slave
+        volumes:
+            - ./opt/data/slave:/data:delegated
+        env_file: .env
+        environment:
+            MASTER_PORT: 6379
+            SLAVE_PORT: 6380
+        expose:
+            - "6380"
+        ports:
+            - "6380:6380"
+        networks:
+            default:
+                aliases:
+                    - redis-slave
+        depends_on:
+            - master
+        restart: always
+
+
+    sentinel:
+        build: ./sentinel
+        env_file: .env
+        environment:
+            MASTER_PORT: 6379
+            SENTINEL_PORT: 26379
+            SENTINEL_QUORUM: 2
+            SENTINEL_DOWN_AFTER: 1000
+            SENTINEL_FAILOVER: 1000
+        expose:
+            - "26379"
+        ports:
+            - "26379:26379"
+        networks:
+            default:
+                aliases:
+                    - redis-sentinel
+        depends_on:
+            - master
+            - slave
+        restart: always
+
+    sentinel_2:
+        build: ./sentinel
+        env_file: .env
+        environment:
+            MASTER_PORT: 6379
+            SENTINEL_PORT: 26380
+            SENTINEL_QUORUM: 2
+            SENTINEL_DOWN_AFTER: 1000
+            SENTINEL_FAILOVER: 1000
+        expose:
+            - "26380"
+        ports:
+            - "26380:26380"
+        networks:
+            default:
+                aliases:
+                    - redis-sentinel-2
+        depends_on:
+            - master
+            - slave
+        restart: always
+
+    sentinel_3:
+        build: ./sentinel
+        env_file: .env
+        environment:
+            MASTER_PORT: 6379
+            SENTINEL_PORT: 26381
+            SENTINEL_QUORUM: 2
+            SENTINEL_DOWN_AFTER: 1000
+            SENTINEL_FAILOVER: 1000
+        expose:
+            - "26381"
+        ports:
+            - "26381:26381"
+        networks:
+            default:
+                aliases:
+                    - redis-sentinel-3
+        depends_on:
+            - master
+            - slave
+        restart: always
+
+networks:
+    default:
+        external: false
